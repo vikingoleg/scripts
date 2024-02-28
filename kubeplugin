@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Ensure kubectl is installed
+if ! command -v kubectl &>/dev/null; then
+    echo "Error: kubectl is not installed. Please install kubectl and try again."
+    exit 1
+fi
+
+# Check if correct number of arguments are provided
+if [ "$#" -ne 0 ]; then
+    echo "Usage: kubectl cpu-stats"
+    exit 1
+fi
+
+# Retrieve resource usage statistics from Kubernetes for pods in kube-system namespace
+kubectl get pods -n kube-system --no-headers=true | while read -r line; do
+    # Extract name of the pod
+    NAME=$(echo "$line" | awk '{print $1}')
+
+    # Retrieve CPU usage for the pod
+    CPU_USAGE=$(kubectl top pod "$NAME" -n kube-system --no-headers=true | awk '{print $2}')
+
+    # Output the statistics to the console
+    echo "pod, kube-system, $NAME, $CPU_USAGE"
+done
